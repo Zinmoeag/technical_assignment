@@ -35,24 +35,27 @@ class Item extends Model
 
     public function scopeGetByOrder($query, $order)
     {
-        $query->when($order ?? false, function($query, $order){
-            $query->when($order['order_column'] === 'category' || 'owner' ?? false, function($query) use($order) { 
-                $query->when($order['order_column'] === 'category' ?? false, function ($query) use($order) {
-                    $query->orderBy(Category::select('category_name')
-                        ->whereColumn('categories.id', 'items.category_id'), $order['order_by']
-                    );
-                });
 
-                $query->when($order['order_column'] === 'owner' ?? false, function ($query) use($order){
-                    $query->orderBy(Owner::select('owner_name')
-                        ->whereColumn('owners.id', 'items.owner_id'), $order['order_by']
-                    );
-                });
-
-            } , function ($query) use($order) {
+        
+        $query->when($order ?? false, function($query, $order)
+        {
+            $query = $query->when(in_array($order['order_column'], ['name' , 'price' , 'id' , 'status']) ?? false, function ($query) use($order) {
                 $query->orderBy($order['order_column'], $order['order_by']);
             });
+
+            $query = $query->when($order['order_column'] === 'category' ?? false, function ($query) use($order) {
+                $query->orderBy(Category::select('category_name')
+                    ->whereColumn('categories.id', 'items.category_id'), $order['order_by']
+                );
+            });
+
+            $query = $query->when($order['order_column'] === 'owner' ?? false, function ($query) use($order){
+                $query->orderBy(Owner::select('owner_name')
+                    ->whereColumn('owners.id', 'items.owner_id'), $order['order_by']
+                );
+            });
         });
+
     }
 
     public function getPhotoAttribute($value)
